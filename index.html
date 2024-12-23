@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fashion Industry Emissions Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background: #f3f4f6;
+            color: #1f2937;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            background: linear-gradient(90deg, #2563eb, #4f46e5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #2563eb0f, #4f46e50f);
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(37, 99, 235, 0.1);
+        }
+
+        .stat-title {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-btn:hover {
+            background: #2563eb;
+            color: white;
+        }
+
+        .filter-btn.active {
+            background: #2563eb;
+            color: white;
+        }
+
+        .info-section {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #2563eb08, #4f46e508);
+            border-radius: 1rem;
+            border: 1px solid rgba(37, 99, 235, 0.1);
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .info-card {
+            padding: 1rem;
+            background: white;
+            border-radius: 0.75rem;
+            border: 1px solid #e5e7eb;
+        }
+
+        .info-card h3 {
+            font-size: 1rem;
+            color: #4b5563;
+            margin-bottom: 0.5rem;
+        }
+
+        .source-link {
+            color: #2563eb;
+            text-decoration: none;
+        }
+
+        .source-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">Lượng Khí Thải Ngành Thời Trang</h1>
+            <div class="filter-buttons">
+                <button class="filter-btn active" onclick="updateChart('all', event)">Tất cả</button>
+                <button class="filter-btn" onclick="updateChart('5', event)">5 năm</button>
+                <button class="filter-btn" onclick="updateChart('3', event)">3 năm</button>
+
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-title">Tổng khí thải 2022</div>
+                <div class="stat-value">2,200 MT</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">% Thay đổi từ 2015</div>
+                <div class="stat-value">+4.76%</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">% Khí thải toàn cầu</div>
+                <div class="stat-value">4%</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Mục tiêu giảm 2030</div>
+                <div class="stat-value">-50%</div>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="emissionsChart"></canvas>
+        </div>
+
+        <div class="info-section">
+            <h2>Thông tin chi tiết</h2>
+            <div class="info-grid">
+                <div class="info-card">
+                    <h3>🏭 Nguồn khí thải chính</h3>
+                    <ul>
+                        <li>Sản xuất vải: 38%</li>
+                        <li>Sản xuất quần áo: 27%</li>
+                        <li>Vận chuyển: 15%</li>
+                        <li>Bán lẻ & Sử dụng: 20%</li>
+                    </ul>
+                </div>
+                <div class="info-card">
+                    <h3>📊 Xu hướng</h3>
+                    <p>Giảm 8.3% năm 2020 do COVID-19, phục hồi 2.38% năm 2021</p>
+                </div>
+                <div class="info-card">
+                    <h3>🎯 Mục tiêu</h3>
+                    <p>Giảm 50% khí thải vào 2030 theo Fashion Industry Charter</p>
+                </div>
+                <div class="info-card">
+                    <h3>💡 Giải pháp</h3>
+                    <p>Tái chế, Vật liệu bền vững, Năng lượng sạch trong sản xuất</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const data = {
+            labels: ['2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022'],
+            datasets: [{
+                label: 'Lượng khí thải (Triệu tấn CO2)',
+                data: [2100, 2280, 2320, 2310, 2290, 2100, 2150, 2200],
+                borderColor: '#2563eb',
+                backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        };
+
+        const ctx = document.getElementById('emissionsChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: data,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        title: {
+                            display: true,
+                            text: 'Triệu tấn CO2'
+                        }
+                    }
+                }
+            }
+        });
+
+        const originalData = [...data.datasets[0].data];
+        const originalLabels = [...data.labels];
+
+function updateChart(period, event) {
+    const buttons = document.querySelectorAll('.filter-btn');
+    buttons.forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+
+    let newData = [...originalData]; // Sử dụng bản sao dữ liệu gốc
+    let newLabels = [...originalLabels];
+
+    if (period !== 'all') {
+        const years = parseInt(period);
+        newData = newData.slice(-years);
+        newLabels = newLabels.slice(-years);
+    }
+
+    chart.data.labels = newLabels;
+    chart.data.datasets[0].data = newData;
+    chart.update();
+}
+    </script>
+</body>
+</html>
